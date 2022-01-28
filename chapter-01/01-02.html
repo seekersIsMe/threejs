@@ -40,18 +40,60 @@
         plane.receiveShadow = true  // 接受阴影
         scene.add(plane)
 
-        // 创建球
-        var sphereGeometry = new THREE.SphereGeometry(2, 20, 20);
+        // 定义正方体的八个定点
+        var vertices = [
+      new THREE.Vector3(2, 2, 2),
+      new THREE.Vector3(2, 2, 0),
+      new THREE.Vector3(2, 0, 2),
+      new THREE.Vector3(2, 0, 0),
+      new THREE.Vector3(0, 2, 0),
+      new THREE.Vector3(0, 2, 2),
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(0, 0, 2)
+  ];
+  // 三角面的顶点顺序如果是顺时针，则是面向相机，逆时针则是背向相机，注意这个顺时针还是逆时针判断是将自己置身立方体内部的顺序
+  var faces = [
+      new THREE.Face3(0, 2, 3),
+      new THREE.Face3(0, 3, 1),
+      new THREE.Face3(4, 6, 5),
+      new THREE.Face3(6, 7, 5),
+      new THREE.Face3(4, 5, 1),
+      new THREE.Face3(5, 0, 1),
+      new THREE.Face3(7, 6, 2),
+      new THREE.Face3(6, 3, 2),
+      new THREE.Face3(5, 7, 0),
+      new THREE.Face3(7, 2, 0),
+      new THREE.Face3(1, 3, 4),
+      new THREE.Face3(3, 6, 4),
+  ];
+        let geo = new THREE.Geometry()
+        geo.vertices = vertices
+        geo.faces = faces
+        geo.computeFaceNormals()
+        let geoMaterial = new THREE.MeshLambertMaterial({ // MeshLambertMaterial材质会对光源有反应，基础材质对光源没有反应，这里使用点光源
+            color: 0xAA0000,
+            opacity: 0.3,
+            transparent: true // 是否透明
+        })
+        // 增加三角面辅助线
+        let wireframe = new THREE.WireframeGeometry(geo)
+        let line = new THREE.LineSegments(wireframe)
+        line.material.linewidth = 2
+        scene.add(line)
+        let geoMesh = new THREE.Mesh(geo, geoMaterial)
+        // geoMesh.castShadow = true
+        geoMesh.position.set(0,0,0)
+        scene.add(geoMesh)
+
+        var sphereGeometry = new THREE.SphereGeometry(1, 20, 20);
         var sphereMaterial = new THREE.MeshLambertMaterial({
             color: 0x7777ff
         });
         var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-        sphere.position.set(10, 5,0)
-        sphere.castShadow = true;
-        scene.add(sphere)
-        sphere.name = 'sphere-' + scene.children.length 
-        // 通过name获取场景中的对象
-        console.log('球体',scene.getObjectByName('sphere-' + scene.children.length))
+        geoMesh.add(sphere)
+        sphere.position.set(1,1,1)
+        geoMesh.translateX(2)
+        line.translateX(2)
         // 定义光源
         let spotLight = new THREE.SpotLight(0xffffff)
         spotLight.position.set(-30, 30, -5);
@@ -75,9 +117,9 @@
         let step = 0
         renderScene()
         function renderScene() {
-            step+=0.01
-            sphere.position.x = 10 + 10*Math.sin(step)
-            sphere.position.y = 5 + 5*Math.abs(Math.cos(step))
+            // step+=0.01
+            // sphere.position.x = 10 + 10*Math.sin(step)
+            // sphere.position.y = 5 + 5*Math.abs(Math.cos(step))
             trackballControls.update(clock.getDelta())
             requestAnimationFrame(renderScene)
             renderer.render(scene, camera);
